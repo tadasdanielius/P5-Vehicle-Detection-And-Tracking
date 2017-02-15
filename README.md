@@ -12,7 +12,7 @@ The goals / steps of this project are the following:
 
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
 * Perform color transform and append binned color features
-* Addad histograms of color
+* Add histograms of color
 * Combine all feature vectors along with HOG feature vector.
 * Normalize the all feature vectors
 * Estimate a bounding box for vehicles detected.
@@ -37,7 +37,7 @@ Testing set: 3552
 
 ![Training images](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image1.png)
 
-There are some examples provided in test_images folder for testing the algorithm and processed results saved into output folder.
+There are some examples provided in test_images folder for testing the algorithm.
 ![Test images](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image2.png)
 
 ## Feature extraction
@@ -62,7 +62,7 @@ Increasing or decreasing orientation from 7 to 12 does not give any benefits. In
 
 ### Colour histogram features
 
-The other source of features I used is histograms of pixel intensity (color histograms) as features. I used all three channels to generate histogram and vectorize everything. With some experimentation I found that converting to **UCrCb** works best with least false positives. **LAB** and **LUV** colour spaces also did a great job, however it gave more false positive. I also tried **HSV**, **YUV** and **HLS** but those spaces gave too much false positives
+The other source of features I used is histograms of pixel intensity (color histograms) as features. I used all three channels to generate histogram and vectorize everything. With some experimentation I found that converting to **YCrCb** works best with least false positives. **LAB** and **LUV** colour spaces also did a great job, however it gave more false positive. I also tried **HSV**, **YUV** and **HLS** but those spaces gave too much false positives
 
 Here is an example of different colour spaces
 ![Color Spaces](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image4.png)
@@ -95,14 +95,15 @@ The area is rather small and X axis should be extended, but for this case it wor
 
 To detect vehicles in the image I implemented sliding window technique to search accross the area of interest. The window size I chose is 64 pixels. The number of steps is calculated:
 
-<pre>
+```python
 imshape = converted_img.shape
 nxblocks = (imshape[1] // pix_per_cell) - 1
 nyblocks = (imshape[0] // pix_per_cell) - 1
 
 nxsteps = (nxblocks - nblocks_per_window) // cells_per_step
 nysteps = (nyblocks - nblocks_per_window) // cells_per_step
-</pre>
+```
+
 Here **pix_per_cell = 8, cells_per_step = 2**. So it makes **60** windows in total.
 
 The code is defined in [sdc.detection.object_detection.py](object_detection.py) starting from line 28
@@ -155,16 +156,23 @@ There is one more problem left to sort out. If vehicle is close enough it takes 
 
 ![box_merge](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image10.png)
 
-Clearly this belongs to the same vehicle, but labelled as separate objects. To solve this problem I use expand and relabel techinque. It works in the following way, on the binary mask I redraw rectangles with slightly expanded borders by 10 pixels. So the result might look like this:
+Clearly this belongs to the same vehicle, but labelled as separate objects. To solve this problem I use expand and relabel techinque. It works in the following way, on the binary mask I redraw rectangles with slightly expanded borders by 10 pixels. The implementation can be found in [heatmap.py](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/sdc/detection/heatmap.py) starting from line 68
+So the result might look like this:
 
 ![box_merge](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image11.png)
 And relabel objects again. Those boxes are now detected as single objects. That solves the problem
 
 ### Pipeline
 
-And finally I put everything together in pipeline. Now, the challenge is to find the balance between performance and quality. After some experimentation I choose to use only 10th frame and for the rest  just draw the previously detected borders. This works well with getting rid of false positive, since I use **bitwise_and** operation every 10th frame and incorrectly detected areas will likely disappear and ofcourse skipping 9 frames boosts the performance. The **project_video** was processed in than **38 seconds** that is even less than actuall video which is **51 second** !
+And finally I put everything together in pipeline. Now, the challenge is to find the balance between performance and quality. 
+After some experimentation I choose to use only 10th frame and for the rest  just draw the previously detected borders. 
+This works well with getting rid of false positive, since I use **bitwise_and** operation every 10th frame and incorrectly 
+detected areas will likely disappear and ofcourse skipping 9 frames boosts the performance. 
+The **project_video** was processed in **38 seconds** that is even less than actuall video which is **51 second** !
 
 pipeline notebook file can be found [here](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/pipeline.ipynb)
+
+![video](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image2.png)
 
 ## Weakness of the algorithm
 
@@ -180,4 +188,5 @@ The strength of the implementation I believe is fast performance it processes vi
 Instead of SVM I have tried to classify same features using neural network implementation instead. The results were not so impressive as I expected, but since it was not a requirement I decided not to invest much time in tunning the architecture of the neural network and tweaking the hyper parameters. Also, the performance of predictions were much slower than SVM, but I guess this is a problem with implementation in Keras. 
 
 Final results can be found [here](https://youtu.be/XlZunXxhPKE)
+
 Writeout notebook can be found [here](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/writeout.ipynb)
