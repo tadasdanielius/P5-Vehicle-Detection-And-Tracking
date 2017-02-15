@@ -172,7 +172,7 @@ The **project_video** was processed in **38 seconds** that is even less than act
 
 pipeline notebook file can be found [here](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/pipeline.ipynb)
 
-![video](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image2.png)
+![video](https://github.com/tadasdanielius/P5-Vehicle-Detection-And-Tracking/blob/master/images/image12.png)
 
 ## Weakness of the algorithm
 
